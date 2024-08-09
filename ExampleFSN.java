@@ -23,14 +23,18 @@ import java.util.*;
 // 	4.	Extensibility:
 // 	•	The system should be designed to easily accommodate new payment methods and transaction fee strategies in the future without significant changes to the existing codebase.
 
+import java.util.*;
 
-  
+// Strategy interface for payment processing
 interface PaymentStrategy {
     void processTransaction();
     double calculateTransactionFees(double amount);
 }
 
+// Concrete strategy for credit card payment
 class CreditCard implements PaymentStrategy {
+    private static final double FEE_PERCENTAGE = 0.02;
+
     @Override
     public void processTransaction() {
         System.out.println("Processing via Credit Card");
@@ -38,11 +42,15 @@ class CreditCard implements PaymentStrategy {
 
     @Override
     public double calculateTransactionFees(double amount) {
-        return 0.02 * amount;
+        return FEE_PERCENTAGE * amount;
     }
 }
 
+// Concrete strategy for PayPal payment
 class Paypal implements PaymentStrategy {
+    private static final double FEE_PERCENTAGE = 0.02;
+    private static final double FIXED_FEE = 1.0;
+
     @Override
     public void processTransaction() {
         System.out.println("Processing via PayPal");
@@ -50,11 +58,14 @@ class Paypal implements PaymentStrategy {
 
     @Override
     public double calculateTransactionFees(double amount) {
-        return 1 + 0.02 * amount;
+        return FIXED_FEE + (FEE_PERCENTAGE * amount);
     }
 }
 
+// Concrete strategy for bank transfer payment
 class BankTransfer implements PaymentStrategy {
+    private static final double FIXED_FEE = 2.0;
+
     @Override
     public void processTransaction() {
         System.out.println("Processing via Bank Transfer");
@@ -62,34 +73,48 @@ class BankTransfer implements PaymentStrategy {
 
     @Override
     public double calculateTransactionFees(double amount) {
-        return 2;
+        return FIXED_FEE;
     }
 }
 
+// Factory interface for creating payment strategies
 interface PaymentFactory {
-    PaymentStrategy createPaymentType(String type);
+    PaymentStrategy createPaymentType(PaymentType type);
 }
 
+// Concrete factory for creating payment strategies
 class PaymentCreator implements PaymentFactory {
-    public PaymentStrategy createPaymentType(String type) {
-        switch (type.toLowerCase()) {
-            case "creditcard":
+    @Override
+    public PaymentStrategy createPaymentType(PaymentType type) {
+        switch (type) {
+            case CREDIT_CARD:
                 return new CreditCard();
-            case "paypal":
+            case PAYPAL:
                 return new Paypal();
-            case "banktransfer":
+            case BANK_TRANSFER:
                 return new BankTransfer();
             default:
-                throw new IllegalArgumentException("Return no valid Strategy");
+                throw new IllegalArgumentException("Invalid payment type: " + type);
         }
     }
 }
 
-public class ExampleFSN{
+// Enum for payment types
+enum PaymentType {
+    CREDIT_CARD,
+    PAYPAL,
+    BANK_TRANSFER
+}
+
+public class HelloWorld {
     public static void main(String[] args) {
-        PaymentFactory p = new PaymentCreator();
-        PaymentStrategy x = p.createPaymentType("creditcard");
-        x.processTransaction();
-        System.out.println(x.calculateTransactionFees(100));
+        PaymentFactory paymentFactory = new PaymentCreator();
+        
+        // Choose a payment type
+        PaymentType paymentType = PaymentType.CREDIT_CARD;
+        
+        PaymentStrategy paymentStrategy = paymentFactory.createPaymentType(paymentType);
+        paymentStrategy.processTransaction();
+        System.out.println("Transaction fees: " + paymentStrategy.calculateTransactionFees(100));
     }
 }
