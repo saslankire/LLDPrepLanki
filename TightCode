@@ -1,0 +1,125 @@
+import java.util.*;
+
+class HelloWorld {
+    public static void main(String[] args) {
+        ComponentFactory c = new ConcreteComponentFactory();
+        Component s1 = c.create("Button", "1", 0.00);
+        Component s2 = c.create("Slider", "2", 0.00);
+        s1.subscribe(s2);
+        s1.updatePos(1.00);
+        System.out.println(s2.getLogs());
+    }
+}
+
+interface ComponentFactory {
+    public Component create(String component, String id, double pos);
+}
+
+class ConcreteComponentFactory implements ComponentFactory {
+    public Component create(String component, String id, double pos) {
+        switch (component.toLowerCase()) {
+            case "button":
+                return new Button(id, pos);
+            case "slider":  // corrected case
+                return new Slider(id, pos);
+            default:
+                throw new IllegalArgumentException("I couldn't find Object");
+        }
+    }
+}
+
+interface Component {
+    void notify(double prevPos, double currentPos);
+
+    void subscribe(Component c);
+
+    void unSubscribe(Component c);
+
+    List<String> getLogs();
+
+    void addLog(String message);
+    
+    void updatePos(double newPos);  // Now part of the interface
+}
+
+class Button implements Component {
+    private List<Component> observers;
+    private List<String> logs;
+    private String id;
+    private double pos;
+
+    public Button(String id, double pos) {
+        this.id = id;
+        this.pos = pos;
+        observers = new ArrayList<>();
+        logs = new ArrayList<>();
+    }
+
+    public void subscribe(Component c) {
+        observers.add(c);
+    }
+
+    public void unSubscribe(Component c) {
+        observers.remove(c);
+    }
+
+    public void updatePos(double newPos) {
+        this.notify(this.pos, newPos);
+        this.pos = newPos;
+    }
+
+    public void notify(double prevPos, double newPos) {
+        for (Component c : observers) {
+            c.addLog("The " + this.id + " moved from " + prevPos + " to " + newPos);
+        }
+    }
+
+    public List<String> getLogs() {
+        return this.logs;
+    }
+
+    public void addLog(String message) {
+        logs.add(message);
+    }
+}
+
+class Slider implements Component {
+    private List<Component> observers;
+    private List<String> logs;
+    private String id;
+    private double pos;
+
+    public Slider(String id, double pos) {
+        this.id = id;
+        this.pos = pos;
+        observers = new ArrayList<>();
+        logs = new ArrayList<>();
+    }
+
+    public void subscribe(Component c) {
+        observers.add(c);
+    }
+
+    public void unSubscribe(Component c) {
+        observers.remove(c);
+    }
+
+    public void updatePos(double newPos) {
+        this.notify(this.pos, newPos);
+        this.pos = newPos;
+    }
+
+    public void notify(double prevPos, double newPos) {
+        for (Component c : observers) {
+            c.addLog("The " + this.id + " moved from " + prevPos + " to " + newPos);
+        }
+    }
+
+    public List<String> getLogs() {
+        return this.logs;
+    }
+
+    public void addLog(String message) {
+        logs.add(message);
+    }
+}
